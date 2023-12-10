@@ -28,7 +28,7 @@ def batch():
     return result
 
 if __name__ == "__main__":
-    final = {key_size: 0 for key_size in key_sizes}
+    final = {key_size: [0, 0, 0] for key_size in key_sizes}
     for i in range(ROUND):
         print(f"Round {i}:")
         result = batch()
