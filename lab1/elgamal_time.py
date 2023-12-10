@@ -1,7 +1,7 @@
 from elgamal import elgamal_key_generation, elgamal_encrypt, elgamal_decrypt
 from time import time_ns
 
-key_sizes = [128, 256, 512]
+key_sizes = [64, 128, 256]
 TEXT = 123456789
 ROUND = 16
 
