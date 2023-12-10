@@ -1,5 +1,4 @@
 import random
-import numpy as np
 import sympy
 
 DEFAULT_KEY_SIZE = 256
