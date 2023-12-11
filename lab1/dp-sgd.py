@@ -68,9 +68,9 @@ class LogisticRegressionCustom:
             # Add noise to gradients
             # DONE: Calculate epsilon_u, delta_u based on epsilon, delta and epochs
             # q = L/N, where L=group_size, N=num_samples
-            q_ = num_samples / clipped_gradients.shape[0] # q^(-1)
-            epsilon_u = epsilon * q_ # epsilon_u = epsilon / q
-            delta_u = delta * q_ # delta_u = delta / q
+            q_ = num_samples / clipped_gradients.shape[0]  # q^(-1)
+            epsilon_u = epsilon * q_  # epsilon_u = epsilon / q
+            delta_u = delta * q_  # delta_u = delta / q
             noisy_dw = add_gaussian_noise_to_gradients(
                 clipped_gradients, epsilon_u, delta_u, C
             )
@@ -113,16 +113,20 @@ def get_train_data(dataset_name=None):
 
 def clip_gradients(gradients, C):
     # DONE: Clip gradients. (gt = gt / max(1, ||gt||_2 / C))
-    l2_norm = np.linalg.norm(gradients, ord=2) # ||gt||_2
+    l2_norm = np.linalg.norm(gradients, ord=2)  # ||gt||_2
     clipped_gradients = gradients / max(1, l2_norm / C)
     return clipped_gradients
 
 
 def add_gaussian_noise_to_gradients(gradients, epsilon, delta, C):
     # DONE: Add gaussian noise to gradients.
-    sigma = (np.sqrt(2 * np.log(1.25 / delta)) / epsilon)  # Calculate sigma based on epsilon and delta
-    noisy_gradients = gradients + np.random.normal(0, C * sigma, gradients.shape) # gt = gt + N(0, C^2 * sigma^2)
-    noisy_gradients = noisy_gradients / gradients.shape[0] # / L
+    sigma = (
+        np.sqrt(2 * np.log(1.25 / delta)) / epsilon
+    )  # Calculate sigma based on epsilon and delta
+    noisy_gradients = gradients + np.random.normal(
+        0, C * sigma, gradients.shape
+    )  # gt = gt + N(0, C^2 * sigma^2)
+    noisy_gradients = noisy_gradients / gradients.shape[0]  # / L
     return noisy_gradients
 
 
