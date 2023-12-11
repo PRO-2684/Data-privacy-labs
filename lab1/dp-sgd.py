@@ -3,6 +3,8 @@ from sklearn.datasets import make_classification, load_breast_cancer
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 
+RANDOM_STATE = 114514  # Set the random state for reproducibility
+
 
 class LogisticRegressionCustom:
     def __init__(self, learning_rate=0.01, num_iterations=100):
@@ -53,17 +55,26 @@ class LogisticRegressionCustom:
             predictions = self.sigmoid(linear_model)
 
             # Compute loss and gradients
-            loss = -np.mean(y * np.log(predictions) + (1 - y) * np.log(1 - predictions))
+            loss = -np.mean(
+                y * np.log(predictions + self.tau)
+                + (1 - y) * np.log(1 - predictions + self.tau)
+            )
             dz = predictions - y
             dw = np.dot(X.T, dz) / num_samples
             db = np.sum(dz) / num_samples
 
             # Clip gradient
-            clip_gradients = clip_gradients(dw, C)
+            clipped_gradients = clip_gradients(dw, C)
             # Add noise to gradients
-            # TODO: Calculate epsilon_u, delta_u based epsilon, delta and epochs here.
-            epsilon_u, delta_u = None, None
-            noisy_dw = add_gaussian_noise_to_gradients(dw, epsilon_u, delta_u, C)
+            # DONE: Calculate epsilon_u, delta_u based on epsilon, delta and epochs
+            # q = L/N, where L=group_size, N=num_samples
+            # epsilon_u = epsilon / q, delta_u = delta / q
+            q_ = num_samples / clipped_gradients.shape[0] # q^(-1)
+            epsilon_u = epsilon * q_
+            delta_u = delta * q_
+            noisy_dw = add_gaussian_noise_to_gradients(
+                clipped_gradients, epsilon_u, delta_u, C
+            )
 
             # Update weights and bias
             self.weights -= self.learning_rate * noisy_dw
@@ -102,14 +113,17 @@ def get_train_data(dataset_name=None):
 
 
 def clip_gradients(gradients, C):
-    # TODO: Clip gradients.
-    clip_gradients = None
-    return clip_gradients
+    # DONE: Clip gradients.
+    l2_norm = np.linalg.norm(gradients, ord=2)
+    clipped_gradients = gradients / max(1, l2_norm / C)
+    return clipped_gradients
 
 
 def add_gaussian_noise_to_gradients(gradients, epsilon, delta, C):
-    # TODO: add gaussian noise to gradients.
-    noisy_gradients = None
+    # DONE: Add gaussian noise to gradients.
+    sigma = (np.sqrt(2 * np.log(1.25 / delta)) / epsilon)  # Calculate sigma based on epsilon and delta
+    noisy_gradients = gradients + np.random.normal(0, C * sigma, gradients.shape)
+    noisy_gradients = noisy_gradients / gradients.shape[0]
     return noisy_gradients
 
 
@@ -129,6 +143,6 @@ if __name__ == "__main__":
     dp_model = LogisticRegressionCustom(learning_rate=0.01, num_iterations=1000)
     epsilon, delta = 1.0, 1e-3
     dp_model.dp_fit(X_train, y_train, epsilon=epsilon, delta=delta, C=1)
-    y_pred = normal_model.predict(X_test)
+    y_pred = dp_model.predict(X_test)  # WTF?
     accuracy = accuracy_score(y_test, y_pred)
     print("DP accuracy:", accuracy)
