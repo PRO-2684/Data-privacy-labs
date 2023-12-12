@@ -15,7 +15,9 @@ class LogisticRegressionCustom:
         self.bias = None
 
     def sigmoid(self, z):
-        return 1 / (1 + np.exp(-z))
+        # np.clip(z, -500, 500) limits the range of z to avoid extremely
+        # large or small values that could lead to overflow.
+        return 1 / (1 + np.exp(-np.clip(z, -700, 700)))
 
     def fit(self, X, y):
         # Initialize weights and bias
@@ -60,23 +62,22 @@ class LogisticRegressionCustom:
                 + (1 - y) * np.log(1 - predictions + self.tau)
             )
             dz = predictions - y
-            dw = np.dot(X.T, dz) / num_samples
-            db = np.sum(dz) / num_samples
 
             # Clip gradient
-            clipped_gradients = clip_gradients(dw, C)
+            clip_dz = clip_gradients(dz, C)
             # Add noise to gradients
             # DONE: Calculate epsilon_u, delta_u based on epsilon, delta and epochs
-            # q = L/N, where L=group_size, N=num_samples
-            q_ = num_samples / clipped_gradients.shape[0]  # q^(-1)
+            # q = L/N, but we have L = N
+            q_ = 1  # DONE: q^(-1)
             epsilon_u = epsilon * q_  # epsilon_u = epsilon / q
             delta_u = delta * q_  # delta_u = delta / q
-            noisy_dw = add_gaussian_noise_to_gradients(
-                clipped_gradients, epsilon_u, delta_u, C
-            )
+            noisy_dz = add_gaussian_noise_to_gradients(clip_dz, epsilon_u, delta_u, C)
+
+            dw = np.dot(X.T, noisy_dz) / num_samples
+            db = np.sum(noisy_dz) / num_samples
 
             # Update weights and bias
-            self.weights -= self.learning_rate * noisy_dw
+            self.weights -= self.learning_rate * dw
             self.bias -= self.learning_rate * db
 
     def predict_probability(self, X):
@@ -120,13 +121,16 @@ def clip_gradients(gradients, C):
 
 def add_gaussian_noise_to_gradients(gradients, epsilon, delta, C):
     # DONE: Add gaussian noise to gradients.
+    np.random.seed(RANDOM_STATE)
     sigma = (
         np.sqrt(2 * np.log(1.25 / delta)) / epsilon
     )  # Calculate sigma based on epsilon and delta
-    noisy_gradients = gradients + np.random.normal(
-        0, C * sigma, gradients.shape
-    )  # gt = gt + N(0, C^2 * sigma^2)
-    noisy_gradients = noisy_gradients / gradients.shape[0]  # / L
+    noisy_gradients = np.random.normal(0, C * sigma, gradients.shape) + np.sum(
+        gradients
+    )
+    noisy_gradients = (
+        gradients + noisy_gradients / gradients.shape[0]
+    )  #   # FIXME: gt = gt + (N(0, C^2 * sigma^2) + sum(gt))/ L
     return noisy_gradients
 
 
