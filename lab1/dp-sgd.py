@@ -130,7 +130,7 @@ def add_gaussian_noise_to_gradients(gradients, epsilon, delta, C):
     )
     noisy_gradients = (
         gradients + noisy_gradients / gradients.shape[0]
-    )  #   # FIXME: gt = gt + (N(0, C^2 * sigma^2) + sum(gt))/ L
+    )  # DONE: gt = gt + (N(0, C^2 * sigma^2) + sum(gt))/ L
     return noisy_gradients
 
 
