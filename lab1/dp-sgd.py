@@ -36,7 +36,9 @@ class LogisticRegressionCustom:
                 y * np.log(predictions + self.tau)
                 + (1 - y) * np.log(1 - predictions + self.tau)
             )
-            dz = predictions - y
+            # dz = predictions - y # L2_loss
+            dz = -(y / (predictions + self.tau) - (1 - y) / (1 - predictions + self.tau)) # Cross entropy loss
+            dz = dz * (predictions * (1 - predictions)) # sigmoid derivative
             dw = np.dot(X.T, dz) / num_samples
             db = np.sum(dz) / num_samples
 
@@ -61,7 +63,9 @@ class LogisticRegressionCustom:
                 y * np.log(predictions + self.tau)
                 + (1 - y) * np.log(1 - predictions + self.tau)
             )
-            dz = predictions - y
+            # dz = predictions - y
+            dz = -(y / (predictions + self.tau) - (1 - y) / (1 - predictions + self.tau)) # Cross entropy loss
+            dz = dz * (predictions * (1 - predictions)) # sigmoid derivative
 
             # Clip gradient
             clip_dz = clip_gradients(dz, C)
@@ -105,6 +109,7 @@ def get_train_data(dataset_name=None):
     else:
         raise ValueError("Not supported dataset_name.")
 
+    X = (X - np.mean(X, axis=0)) / X.std(axis=0) # Normalize the data
     # Split the dataset into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_STATE
