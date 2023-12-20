@@ -37,8 +37,10 @@ class LogisticRegressionCustom:
                 + (1 - y) * np.log(1 - predictions + self.tau)
             )
             # dz = predictions - y # L2_loss
-            dz = -(y / (predictions + self.tau) - (1 - y) / (1 - predictions + self.tau)) # Cross entropy loss
-            dz = dz * (predictions * (1 - predictions)) # sigmoid derivative
+            dz = -(
+                y / (predictions + self.tau) - (1 - y) / (1 - predictions + self.tau)
+            )  # Cross entropy loss
+            dz = dz * (predictions * (1 - predictions))  # sigmoid derivative
             dw = np.dot(X.T, dz) / num_samples
             db = np.sum(dz) / num_samples
 
@@ -52,6 +54,12 @@ class LogisticRegressionCustom:
         self.weights = np.zeros(num_features)
         self.bias = 0
 
+        # DONE: Calculate epsilon_u, delta_u based on epsilon, delta and epochs
+        delta_u = delta / (self.num_iterations + 1)  # delta_u = delta / (k + 1)
+        epsilon_u = epsilon / (
+            2 * np.sqrt(2 * self.num_iterations * np.log(1 / delta_u))
+        )  # Advanced composition theorem
+
         # Gradient descent optimization
         for _ in range(self.num_iterations):
             # Compute predictions of the model
@@ -64,17 +72,14 @@ class LogisticRegressionCustom:
                 + (1 - y) * np.log(1 - predictions + self.tau)
             )
             # dz = predictions - y
-            dz = -(y / (predictions + self.tau) - (1 - y) / (1 - predictions + self.tau)) # Cross entropy loss
-            dz = dz * (predictions * (1 - predictions)) # sigmoid derivative
+            dz = -(
+                y / (predictions + self.tau) - (1 - y) / (1 - predictions + self.tau)
+            )  # Cross entropy loss
+            dz = dz * (predictions * (1 - predictions))  # sigmoid derivative
 
             # Clip gradient
             clip_dz = clip_gradients(dz, C)
             # Add noise to gradients
-            # DONE: Calculate epsilon_u, delta_u based on epsilon, delta and epochs
-            delta_u = delta / (self.num_iterations + 1)  # delta_u = delta / (k + 1)
-            epsilon_u = epsilon / (
-                2 * np.sqrt(2 * self.num_iterations * np.log(1 / delta_u))
-            ) # Advanced composition theorem
             noisy_dz = add_gaussian_noise_to_gradients(clip_dz, epsilon_u, delta_u, C)
 
             dw = np.dot(X.T, noisy_dz) / num_samples
@@ -109,7 +114,7 @@ def get_train_data(dataset_name=None):
     else:
         raise ValueError("Not supported dataset_name.")
 
-    X = (X - np.mean(X, axis=0)) / X.std(axis=0) # Normalize the data
+    X = (X - np.mean(X, axis=0)) / X.std(axis=0)  # Normalize the data
     # Split the dataset into training and testing sets
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_STATE
