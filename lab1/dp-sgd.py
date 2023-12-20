@@ -67,10 +67,10 @@ class LogisticRegressionCustom:
             clip_dz = clip_gradients(dz, C)
             # Add noise to gradients
             # DONE: Calculate epsilon_u, delta_u based on epsilon, delta and epochs
-            # q = L/N, but we have L = N
-            q_ = 1  # DONE: q^(-1)
-            epsilon_u = epsilon * q_  # epsilon_u = epsilon / q
-            delta_u = delta * q_  # delta_u = delta / q
+            delta_u = delta / (self.num_iterations + 1)  # delta_u = delta / (k + 1)
+            epsilon_u = epsilon / (
+                2 * np.sqrt(2 * self.num_iterations * np.log(1 / delta_u))
+            ) # Advanced composition theorem
             noisy_dz = add_gaussian_noise_to_gradients(clip_dz, epsilon_u, delta_u, C)
 
             dw = np.dot(X.T, noisy_dz) / num_samples
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     # Training the differentially private model
     dp_model = LogisticRegressionCustom(learning_rate=0.01, num_iterations=1000)
-    epsilon, delta = 1.0, 1e-3
+    epsilon, delta = 100, 1
     dp_model.dp_fit(X_train, y_train, epsilon=epsilon, delta=delta, C=1)
     y_pred = dp_model.predict(X_test)  # WTF?
     accuracy = accuracy_score(y_test, y_pred)
