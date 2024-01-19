@@ -44,8 +44,8 @@ class LinearPassive:
 
     def _mask_grad(self, enc_grad):
         # DONE:
-        mask = np.random.randn(*enc_grad.shape)
-        enc_mask = self.cryptosystem.encrypt_vector(mask)
+        mask = np.random.randn(*enc_grad.shape) # R_B
+        enc_mask = self.cryptosystem.encrypt_vector(mask) # [[R_B]]
         enc_mask_grad = enc_grad + enc_mask
         return enc_mask_grad, mask
 
@@ -100,7 +100,7 @@ class LinearPassive:
 
                 # DONE: Receive encrypted residue and calculate masked encrypted gradients
                 # -----------------------------------------------------------------
-                enc_residue = self.messenger.recv() # |y_i-\hat{y_i}|
+                enc_residue = self.messenger.recv() # [[y_i-\hat{y_i}]]
                 enc_grad = self._gradient(enc_residue, batch_idxes)
                 enc_mask_grad, mask = self._mask_grad(enc_grad)
                 self.messenger.send(enc_mask_grad)

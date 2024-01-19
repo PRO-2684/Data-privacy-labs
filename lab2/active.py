@@ -85,7 +85,7 @@ class LinearActive:
                 enc_residue = np.array(enc_residue)
                 self.messenger.send(enc_residue)
                 enc_passive_grad = self.messenger.recv()
-                passive_grad = self.cryptosystem.decrypt_vector(enc_passive_grad) # DONE:
+                passive_grad = self.cryptosystem.decrypt_vector(enc_passive_grad) # DONE: decrypt([[grad]]+[[R_B]])
                 self.messenger.send(passive_grad)
                 # -----------------------------------------------------------------
 
