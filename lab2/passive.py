@@ -43,12 +43,15 @@ class LinearPassive:
         return reg_grad
 
     def _mask_grad(self, enc_grad):
-        mask = ...  # TODO
-        enc_mask_grad = ...  # TODO
+        # FIXME:
+        mask = np.random.normal(0, 1.0, enc_grad.shape)
+        enc_mask = self.cryptosystem.encrypt_vector(mask)
+        enc_mask_grad = enc_grad + enc_mask
         return enc_mask_grad, mask
 
     def _unmask_grad(self, mask_grad, mask):
-        true_grad = ...  # TODO
+        # FIXME:
+        true_grad = mask_grad - mask
         return true_grad
 
     def train(self, trainset):
@@ -89,15 +92,15 @@ class LinearPassive:
                 end = len(all_idxes) if batch == n_batches - 1 else (batch + 1) * bs
                 batch_idxes = all_idxes[start:end]
 
-                # Q1. Calculate wx and send it to active party
+                # FIXME: Calculate wx and send it to active party
                 # -----------------------------------------------------------------
-                passive_wx = ...  # TODO
+                passive_wx = np.dot(self.x_train[batch_idxes], self.params) # FIXME: Theta_i^B*x_i^B
                 self.messenger.send(passive_wx)
                 # -----------------------------------------------------------------
 
-                # Q2. Receive encrypted residue and calculate masked encrypted gradients
+                # FIXME: Receive encrypted residue and calculate masked encrypted gradients
                 # -----------------------------------------------------------------
-                enc_residue = self.messenger.recv()
+                enc_residue = self.messenger.recv() # |y_i-\hat{y_i}|
                 enc_grad = self._gradient(enc_residue, batch_idxes)
                 enc_mask_grad, mask = self._mask_grad(enc_grad)
                 self.messenger.send(enc_mask_grad)
