@@ -65,9 +65,9 @@ class LinearActive:
                 end = len(all_idxes) if batch == n_batches - 1 else (batch + 1) * bs
                 batch_idxes = all_idxes[start:end]
 
-                # FIXME: Active party calculates y_hat
+                # DONE: Active party calculates y_hat
                 # -----------------------------------------------------------------
-                active_wx = np.dot(self.x_train[batch_idxes], self.params) # FIXME: Theta_i^A*x_i^A
+                active_wx = np.dot(self.x_train[batch_idxes], self.params) # DONE: Theta_i^A*x_i^A
                 passive_wx = self.messenger.recv() # Theta_i^B*x_i^B
                 full_wx = active_wx + passive_wx
                 y_hat = self.activation(full_wx)
@@ -79,13 +79,13 @@ class LinearActive:
                 residue = self.y_train[batch_idxes] - y_hat
                 residue = np.array([round(res, self.RESIDUE_PRECISION) for res in residue])
 
-                # FIXME: Active party helps passive party to calculate gradient
+                # DONE: Active party helps passive party to calculate gradient
                 # -----------------------------------------------------------------
                 enc_residue = self.cryptosystem.encrypt_vector(residue)
                 enc_residue = np.array(enc_residue)
                 self.messenger.send(enc_residue)
                 enc_passive_grad = self.messenger.recv()
-                passive_grad = self.cryptosystem.decrypt_vector(enc_passive_grad) # FIXME:
+                passive_grad = self.cryptosystem.decrypt_vector(enc_passive_grad) # DONE:
                 self.messenger.send(passive_grad)
                 # -----------------------------------------------------------------
 
@@ -116,7 +116,7 @@ class LinearActive:
         return total_loss
 
     def _acc(self, y_true, y_hat):
-        # FIXME: Compute accuracy
+        # DONE: Compute accuracy
         # -----------------------------------------------------------------
         acc = np.mean(np.round(y_hat) == y_true) # Compare prediction with true label
         # -----------------------------------------------------------------
